@@ -1,7 +1,7 @@
 import { WatchDog } from 'pubo-utils';
 import * as mediasoup from 'mediasoup';
 import { spawn } from 'child_process';
-import { audioSsrc, FFmpegLib, getAudioCommand } from '../configure';
+import { audioSsrc, FFmpegLib, getAudioCommand, debug } from '../configure';
 import { ProducerState, getRouter } from '../state';
 import { SIGKILL } from 'pubo-node';
 
@@ -50,9 +50,17 @@ export class AudioProducer {
       rtcp: this.transport.rtcpTuple.localPort,
     });
 
+    if (debug) {
+      console.log(this.options.join(' '));
+    }
     this.child = spawn(FFmpegLib, this.options, { detached: true, shell: true });
     this.dog?.feed();
-    this.child.stderr.on('data', () => this.dog?.feed());
+    this.child.stderr.on('data', (buf) => {
+      if (debug) {
+        console.log(buf.toString());
+      }
+      this.dog?.feed();
+    });
   }
 
   async kill() {

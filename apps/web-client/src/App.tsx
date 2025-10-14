@@ -110,7 +110,7 @@ export function App() {
   return (
     <div className="App">
       <WebrtcVideo />
-      <WebrtcAudio url="hw:1,0" />
+      <WebrtcAudio url="rtsp://admin:yikun606@192.168.2.252:554/h264/ch1/main/av_stream" />
       <Speaker />
     </div>
   );

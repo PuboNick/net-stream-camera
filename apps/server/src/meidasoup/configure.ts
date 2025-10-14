@@ -4,6 +4,9 @@ import fs from 'fs';
 import { FFmpegProducer } from './producer/ffmpeg';
 import { AudioProducer } from './producer/audio';
 
+export const debug = false;
+
+export const ffmpegVersion = 'ffmpeg-n4.4';
 export const ssrc = 22222222;
 
 export const audioSsrc = 11111111;
@@ -23,13 +26,12 @@ export const mediaCodecs: any[] = [
 ];
 
 export const FFmpegLib = (() => {
-  const lib = path.resolve('lib/ffmpeg-n4.4/bin/ffmpeg');
+  const lib = path.resolve(`lib/${ffmpegVersion}/bin/ffmpeg`);
 
   try {
     fs.readFileSync(lib);
     return lib;
   } catch (err) {
-    console.log(err);
     return 'ffmpeg';
   }
 })();
@@ -103,6 +105,35 @@ export const getProducer = (key) => {
 
 //hw:1,0
 export const getAudioCommand = (url, options: { rtp: number; rtcp: number }) => {
+  if (url.includes('rtsp')) {
+    return [
+      '-fflags',
+      'nobuffer',
+      '-flags',
+      'low_delay',
+      '-fflags',
+      'discardcorrupt',
+      '-rtsp_transport ',
+      'tcp',
+      '-i',
+      url,
+      '-map',
+      '0:a:0',
+      '-acodec',
+      'libopus',
+      '-ab',
+      '128k',
+      '-ac',
+      '2',
+      '-ar',
+      '48000',
+      '-af',
+      'highpass=200,lowpass=3000,afftdn',
+      '-f',
+      'tee',
+      `[select=a:f=rtp:ssrc=${exports.audioSsrc}:payload_type=101]rtp://127.0.0.1:${options.rtp}?rtcpport=${options.rtcp}`,
+    ];
+  }
   return [
     '-ac',
     '2',
