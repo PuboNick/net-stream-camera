@@ -19,17 +19,17 @@ app.all('*', (req, res, next) => {
 
 app.use(express.static(path.resolve('cache/recorder')));
 app.get('/api/search', async (req, res) => {
-  const { channel } = req.query;
+  const { channel, date } = req.query;
   let results;
   try {
-    results = await fs.readdir(path.resolve(`cache/recorder/${channel}`));
+    results = await fs.readdir(path.resolve(`cache/recorder/${channel}/${date}`));
     if (results.length > 0) {
       const date = new Date();
       const last = results[results.length - 1];
       date.setHours(parseInt(last.slice(0, 2)));
       date.setMinutes(parseInt(last.slice(2, 4)));
       date.setSeconds(parseInt(last.slice(4, 6)));
-      if (new Date().valueOf() - date.valueOf() < 3600000) {
+      if (new Date().valueOf() - date.valueOf() < 60000) {
         results.pop();
       }
     }

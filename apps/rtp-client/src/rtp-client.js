@@ -1,4 +1,4 @@
-const { writeFileSync, mkdirSync } = require('fs');
+const { writeFileSync, mkdirSync, readFileSync } = require('fs');
 const path = require('path');
 const { WatchDog } = require('pubo-utils');
 const { SIGKILL } = require('pubo-node');
@@ -6,6 +6,7 @@ const { SIGKILL } = require('pubo-node');
 const WebSocket = require('ws');
 
 mkdirSync(path.resolve(`cache/sdp`), { recursive: true });
+const sdpFmt = readFileSync('./sdp-template.sdp').toString();
 
 function RTPClient({ input, output, server, local, port, remote }) {
   this.input = input;
@@ -53,6 +54,7 @@ RTPClient.prototype.connect = function () {
       .split(' ')
       .filter((item) => item.trim().length > 0);
 
+    console.log(cmd.join(' '));
     this.s = require('child_process').spawn(cmd[0], cmd.slice(1));
     this.s.stderr.on('data', (msg) => this.onMessage(msg));
   });
@@ -65,20 +67,14 @@ RTPClient.prototype.connect = function () {
   });
 };
 
-RTPClient.prototype.onMessage = function () {
+RTPClient.prototype.onMessage = function (msg) {
+  // console.log(msg.toString());
   this.dog.feed();
 };
 
 RTPClient.prototype.writeSDP = function () {
-  const text = `v=0
-o=- 0 0 IN IP4 0.0.0.0
-s=Media Presentation
-c=IN IP4 0.0.0.0
-t=0 0
-a=tool:libavformat 58.76.100
-m=video ${this.port} RTP/AVP 100
-b=AS:256
-a=rtpmap:100 VP8/90000`;
+  const text = sdpFmt.replace(/{port}/g, this.port);
+
   writeFileSync(this.sdp, text);
 };
 
