@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useWebrtc, WebRtcProps } from './lib';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRecorder, useWebrtc, WebRtcProps } from './lib';
 import RecordRTC from 'recordrtc';
 import axios from 'axios';
+import { downloadFile } from 'pubo-web';
 
 const baseURI = `ws://127.0.0.1:8080/webrtc?host=127.0.0.1`;
 
@@ -41,15 +42,35 @@ export const WebrtcAudio = ({ url }: any) => {
 
 export function WebrtcVideo() {
   const remoteVideoRef: any = useRef();
+  const [recording, setRecording] = useState<boolean>(false);
 
-  useWebrtc({
+  const webrtc = useWebrtc({
     url: 'rtsp://admin:yikun606@192.168.2.252:554/h264/ch1/sub/av_stream',
     el: remoteVideoRef,
     paused: false,
     baseURI,
   });
 
-  return <div style={{ width: '900px', height: '600px', backgroundColor: '#000' }} ref={remoteVideoRef} />;
+  useRecorder({
+    recording,
+    rtc: webrtc.rtc,
+    onRecord: (blob) => {
+      downloadFile(URL.createObjectURL(blob), 'test.webm');
+    },
+  });
+
+  return (
+    <>
+      <div style={{ width: '900px', height: '600px', backgroundColor: '#000' }} ref={remoteVideoRef} />
+      <button
+        onClick={() => {
+          setRecording((o) => !o);
+        }}
+      >
+        {recording ? '停止录制' : '录制视频'}
+      </button>
+    </>
+  );
 }
 
 export function Speaker() {

@@ -26,9 +26,12 @@ class Recorder {
         return resolve(null);
       }
       this.recording = false;
-      this.mediaRecorder.addEventListener('dataavailable', (event) => {
+      const onEnd = (event: any) => {
         resolve(event.data);
-      });
+        this.mediaRecorder?.removeEventListener('dataavailable', onEnd);
+        this.mediaRecorder = null;
+      };
+      this.mediaRecorder.addEventListener('dataavailable', onEnd);
       this.mediaRecorder.stop();
       return false;
     });

@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import * as fs from 'fs';
 
 import { cors } from './middleware/token.middleware';
 import { useWebsocket } from './middleware/ws.middleware';
@@ -18,6 +19,7 @@ async function bootstrap() {
 
   app.post('/wav/play', upload.single('file'), async (req: any, res) => {
     YKAudioSpeaker.instance.play(req.file.buffer);
+    fs.writeFileSync('test.wav', req.file.buffer);
     res.send('success');
   });
 
