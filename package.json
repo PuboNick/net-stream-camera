@@ -13,6 +13,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "oxlint": "^0.9.9"
+    "naudiodon": "^2.3.6",
+    "oxlint": "^0.9.9",
+    "pubo-utils": "^1.0.210"
   }
 }

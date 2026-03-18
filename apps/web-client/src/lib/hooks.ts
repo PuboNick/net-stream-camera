@@ -82,7 +82,7 @@ export const useWebrtc = ({ url, el, baseURI, paused, type = 'video' }: WebRtcPr
     cache.instance.style.height = '100%';
     cache.instance.control = false;
     cache.instance.muted = type === 'video';
-    cache.instance.autoplay = true;
+    cache.instance.autoplay = type === 'video';
     el.current.appendChild(cache.instance);
   }, [el]);
 

@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+
+var { app, wsProxyDic } = require('../app');
+var debug = require('debug')('demo:server');
+var http = require('http');
+var fs = require('fs');
+var https = require('https');
+var path = require('path');
+
+const options = {
+  key: fs.readFileSync(path.join(__dirname, '../cert/server.key')),
+  cert: fs.readFileSync(path.join(__dirname, '../cert/server.csr')),
+};
+
+const httpsPort = parseInt(process.argv[2]) || 3001;
+const httpPort = parseInt(process.argv[3]) || httpsPort - 1;
+
+app.set('port', httpPort);
+app.set('portHttps', httpsPort);
+
+/**
+ * Create HTTP and HTTPS servers.
+ */
+
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(options, app);
+
+// WebSocket 升级事件处理
+const handleWsUpgrade = (req, socket, head) => {
+  const proxy = wsProxyDic['/webrtc'];
+  if (proxy) {
+    proxy.upgrade(req, socket, head);
+  } else {
+    socket.destroy();
+  }
+};
+
+// HTTP 和 HTTPS 服务器都监听 WebSocket 升级事件
+httpServer.on('upgrade', handleWsUpgrade);
+httpsServer.on('upgrade', handleWsUpgrade);
+
+/**
+ * Error handling.
+ */
+
+httpServer.on('error', (err) => onError(err, httpPort));
+httpServer.on('listening', () => onListening(httpServer, 'HTTP'));
+
+httpsServer.on('error', (err) => onError(err, httpsPort));
+httpsServer.on('listening', () => onListening(httpsServer, 'HTTPS'));
+
+/**
+ * Start servers.
+ */
+
+httpServer.listen(httpPort, function () {
+  console.log(`HTTP  server running at http://localhost:${httpPort}`);
+});
+
+httpsServer.listen(httpsPort, function () {
+  console.log(`HTTPS server running at https://localhost:${httpsPort}`);
+});
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error, port) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for server "listening" event.
+ */
+
+function onListening(server, protocol) {
+  var addr = server.address();
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  debug(`${protocol} listening on ${bind}`);
+}

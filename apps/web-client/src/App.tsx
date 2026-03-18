@@ -4,7 +4,11 @@ import RecordRTC from 'recordrtc';
 import axios from 'axios';
 import { downloadFile } from 'pubo-web';
 
-const baseURI = `ws://127.0.0.1:8080/webrtc?host=127.0.0.1`;
+function isHttps() {
+  return window.location.protocol === 'https:';
+}
+
+const baseURI = `${isHttps() ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}/webrtc?host=${window.location.hostname}`;
 
 export const WebrtcAudio = ({ url }: any) => {
   const remoteAudioRef: any = useRef();
@@ -108,7 +112,7 @@ export function Speaker() {
       const file = new File([blob], 'track.wav');
       const form = new FormData();
       form.append('file', file);
-      await axios.post('http://localhost:8080/wav/play', form);
+      await axios.post(`/api/wav/play`, form);
     });
   }, []);
 

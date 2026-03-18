@@ -1,1 +1,1 @@
-{"root":["./lib/connection.tsx","./lib/hooks.ts","./lib/index.tsx"],"version":"5.8.2"}
+{"root":["./src/App.tsx","./src/main.tsx","./src/lib/connection.tsx","./src/lib/hooks.ts","./src/lib/index.tsx"],"version":"5.8.2"}
