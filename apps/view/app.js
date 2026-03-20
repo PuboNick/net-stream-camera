@@ -34,6 +34,10 @@ app.set('view engine', 'ejs');
 app.use(compression());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/test', (req, res) => {
+  res.render('iframe.ejs');
+});
+
 // SPA 回退
 app.all('*', async (_, res) => {
   res.render('index.ejs', { title: '' });

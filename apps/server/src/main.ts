@@ -19,7 +19,6 @@ async function bootstrap() {
 
   app.post('/wav/play', upload.single('file'), async (req: any, res) => {
     YKAudioSpeaker.instance.play(req.file.buffer);
-    fs.writeFileSync('test.wav', req.file.buffer);
     res.send('success');
   });
 
